@@ -5,21 +5,26 @@ import {View, Text, StyleSheet, Button, SafeAreaView, TouchableOpacity, FlatList
 import { useNavigation } from '@react-navigation/native';
 import {Feather} from '@expo/vector-icons';
 
+
 import CategoryItem from '../../components/Categoryitem';
 import { getFavorite, setFavorite} from '../../services/favorite';
 import FavoritePost from '../../components/favoritePost';
 import api from '../../services/api';
+import PostItem from '../../components/PostItem';
 
 
 export default function Home(){
 
     const navigation = useNavigation();
     const [categories, setCategories] = useState([]);
-    const [edCategory, setEdCategory] = useState([])
+    const [edCategory, setEdCategory] = useState([]);
+    const [posts, setPosts] = useState([]);
 
     useEffect(() => {
        // chamando a api quando a tela é iniciada.
       async  function loadData(){
+
+         await getListPosts();
           // usando get para pegar a api.
          const category = await api.get("/api/categories?populate=icon")
          setCategories(category.data.data)
@@ -36,6 +41,11 @@ export default function Home(){
         favorite();
     }, [])
     
+   async function getListPosts(){
+          const response = await api.get("api/posts?populate=cover&sort=createdAt:desc")
+         setPosts(response.data.data)
+        }
+
     // Favoritando uma categoria
   async  function handleFavorite(id){
         const response = await setFavorite(id)
@@ -83,6 +93,15 @@ export default function Home(){
                  )}
 
                  <Text style={[styles.title, {marginTop: edCategory.length > 0 ? 14 : 46}]}>Conteúdos em alta</Text>
+
+                 <FlatList
+                 style={{ flex: 1, paddingHorizontal: 18, }}
+                 showsVerticalScrollIndicator={false}
+                 data={posts}
+                 keyExtractor={ (item) => String(item.id)}
+                 renderItem={ ({item}) => <PostItem data={item} />}
+                 
+                 />
 
              </View>
         </SafeAreaView>
