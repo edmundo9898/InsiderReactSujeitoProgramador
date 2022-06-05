@@ -5,6 +5,7 @@ import {View, Text, StyleSheet, Button, SafeAreaView, TouchableOpacity, FlatList
 import { useNavigation } from '@react-navigation/native';
 import {Feather} from '@expo/vector-icons';
 
+import * as Animatable from 'react-native-animatable';
 
 import CategoryItem from '../../components/Categoryitem';
 import { getFavorite, setFavorite} from '../../services/favorite';
@@ -12,6 +13,7 @@ import FavoritePost from '../../components/favoritePost';
 import api from '../../services/api';
 import PostItem from '../../components/PostItem';
 
+const FlatListAnimated = Animatable.createAnimatableComponent(FlatList)
 
 export default function Home(){
 
@@ -19,6 +21,7 @@ export default function Home(){
     const [categories, setCategories] = useState([]);
     const [edCategory, setEdCategory] = useState([]);
     const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
        // chamando a api quando a tela é iniciada.
@@ -42,8 +45,10 @@ export default function Home(){
     }, [])
     
    async function getListPosts(){
+          setLoading(true);
           const response = await api.get("api/posts?populate=cover&sort=createdAt:desc")
-         setPosts(response.data.data)
+          setPosts(response.data.data)
+          setLoading(false);
         }
 
     // Favoritando uma categoria
@@ -56,13 +61,15 @@ export default function Home(){
     return(
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.name}>Dev Blog</Text>
+                <Animatable.Text style={styles.name} animation="fadeInLeft">Dev Blog </Animatable.Text>
                 <TouchableOpacity onPress={()=> navigation.navigate('Search')}>
                  <Feather name='search' size={24} color='#fff' />
                 </TouchableOpacity>
             </View>
 
-            <FlatList
+            <FlatListAnimated
+            animation='flipInX'
+            delay={800}
             horizontal={true}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{paddingRight: 12}}
@@ -100,6 +107,8 @@ export default function Home(){
                  data={posts}
                  keyExtractor={ (item) => String(item.id)}
                  renderItem={ ({item}) => <PostItem data={item} />}
+                 refreshing={loading}
+                 onRefresh={() => getListPosts()}
                  
                  />
 
